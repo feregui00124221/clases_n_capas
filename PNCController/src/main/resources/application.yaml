@@ -20,3 +20,4 @@ spring:
         hibernate:
             globally_quoted_identifiers: true
     show-sql: true
+    open-in-view: false
