@@ -14,4 +14,7 @@ public class User {
     private String username;
     private String email;
     @Convert(converter = Encrypter.class) private String password;
+
+    @Column(nullable = false)
+    private boolean enabled;
 }

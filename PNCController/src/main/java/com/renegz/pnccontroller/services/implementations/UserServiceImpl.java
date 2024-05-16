@@ -31,17 +31,19 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User findByUsernameOrEmail(String username, String email) {
-        return userRepository.findByUsernameOrEmail(username, email).orElse(null);
+        return userRepository.findByUsernameOrEmail(username, email).filter(User::isEnabled).orElse(null);
     }
 
     @Override
     public User findByUUID(UUID uuid) {
-        return userRepository.findById(uuid).orElse(null);
+        return userRepository.findById(uuid).filter(User::isEnabled).orElse(null);
     }
 
     @Override
     public List<UserResponseDTO> findAll() {
-        return userRepository.findAll().stream()
+        return userRepository.findAll()
+                .stream()
+                .filter(User::isEnabled)
                 .map(user -> new UserResponseDTO(user.getUsername(), user.getEmail()))
                 .collect(Collectors.toList());
     }
@@ -54,6 +56,7 @@ public class UserServiceImpl implements UserService {
         user.setUsername(UserInfo.getUsername());
         user.setEmail(UserInfo.getEmail());
         user.setPassword(UserInfo.getPassword());
+        user.setEnabled(true);
 
         userRepository.save(user);
     }
@@ -72,7 +75,12 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(rollbackOn = Exception.class)
     public void deleteUser(UUID uuid) {
-        userRepository.deleteById(uuid);
+        User user = findByUUID(uuid);
+
+        if (user != null) {
+            user.setEnabled(false);
+            userRepository.save(user);
+        }
     }
 
     @Override
