@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Save Book</title>
+</head>
+<body>
+    <a href="/library/all">
+        <h1> Find all books</h1>
+    </a>
+    <form action="/library/save" method="post">
+        <label>
+            ISBN:
+            <input id="isbn-field" type="text" name="ISBN">
+        </label>
+        <label>
+            Title:
+            <input id="title-field" type="text" name="title">
+        </label>
+        <input type="submit" value="save-form">
+    </form>
+</body>
+</html>

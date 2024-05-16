@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Rest Library</title>
+</head>
+<body>
+    <form id="save-book-form" action="/library/save" method="post">
+        <label>
+            ISBN:
+            <input id="isbn-field" type="text" name="isbn">
+        </label>
+        <label>
+            Title:
+            <input id="title-field" type="text" name="title">
+        </label>
+        <label>
+            Category:
+            <select id="category-select" name="category">
+            </select>
+        </label>
+        <input type="submit" value="save-form">
+    </form>
+    <table>
+        <thead>
+        <tr>
+            <th>ISBN</th>
+            <th>Title</th>
+            <th>Action</th>
+            <th>Category</th>
+        </tr>
+        </thead>
+        <tbody id="book-list-container">
+            <!-- Mustache -->
+            {{#books}}
+            <tr>
+                <td>
+                    {{ISBN}}
+                </td>
+                <td>
+                    {{title}}
+                </td>
+                <td>
+                    {{#category}}
+                        {{name}}
+                    {{/category}}
+                </td>
+                <td>
+                    <button onclick="deleteBook('{{ISBN}}')">Delete</button>
+                </td>
+            </tr>
+            {{/books}}
+        </tbody>
+    </table>
+    <script>
+        const form = document.querySelector("#save-book-form");
+        const container = document.querySelector("#book-list-container");
+        const categorySelect = document.querySelector("#category-select");
+
+        const fetchBooks = async () => {
+            const response = await fetch("/api/library/all");
+            return await response.json().then(data => data.data);
+        }
+
+        const fetchCategories = async () => {
+            const response = await fetch("/api/library/category");
+            return await response.json().then(data => data.data);
+        }
+
+        const deleteBook = async (isbn) => {
+            const response = await fetch(`http://localhost:8080/api/library/${isbn}`, {
+                method: "DELETE"});
+            if (response.ok) {
+                await renderTable();
+            } else {
+                alert("Ups! hubo un error")
+            }
+        }
+
+        const createBookElement = (info) => {
+
+            console.log(info);
+
+            const holder = document.createElement("tr");
+            holder.dataset.id = info.isbn;
+            holder.innerHTML = `
+                <td>${info.isbn}</td>
+                <td>${info.title}</td>
+                <td>${info.category?.name}</td>
+                <button onclick="deleteBook('${info.isbn}')">Delete</button>
+            `;
+
+            return holder;
+        }
+
+        const renderTable = async () => {
+            const books = await fetchBooks() || [];
+
+            container.innerHTML = "";
+            books.forEach(book => {
+                container.appendChild(createBookElement(book));
+            });
+        }
+
+        const Main = async () => {
+            //const books = await fetchBooks();
+            //console.table(books);
+
+            //await renderTable();
+
+            const categories = await fetchCategories();
+
+            categorySelect.innerHTML = "";
+
+            categories.forEach(category => {
+                const option = document.createElement("option");
+                option.value = category.code;
+                option.textContent = category.name;
+                categorySelect.appendChild(option);
+            });
+
+            form.addEventListener("submit", async (e) => {
+                e.preventDefault();
+
+                const data = new FormData(form);
+                const _book = {
+                    isbn: data.get("isbn"),
+                    title: data.get("title"),
+                    category: data.get("category")
+                };
+
+                const response = await fetch("http://localhost:8080/api/library/save", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(_book)
+                });
+
+                if (response.ok) {
+                    await renderTable();
+                } else {
+                    alert("Error saving book, write good data!");
+                }
+            })
+        }
+
+        Main();
+    </script>
+</body>
+</html>
