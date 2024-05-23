@@ -30,7 +30,7 @@ public class Token {
     private Boolean active;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "user_code")
+    @JoinColumn(name = "id")
     @JsonIgnore
     private User user;
 
