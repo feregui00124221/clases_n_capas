@@ -1,6 +1,5 @@
 package com.renegz.pnccontroller.controllers;
 
-import com.renegz.pnccontroller.domain.dtos.BookLoanDTO;
 import com.renegz.pnccontroller.domain.dtos.CreateBookLoanDTO;
 import com.renegz.pnccontroller.domain.dtos.GeneralResponse;
 import com.renegz.pnccontroller.domain.dtos.SaveBookDTO;
@@ -15,8 +14,6 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/library")
@@ -89,7 +86,7 @@ public class LibraryRestController {
 
     @PostMapping("/loan-book")
     public ResponseEntity<GeneralResponse> loanBook(@RequestBody @Valid CreateBookLoanDTO info){
-        User user = userService.findByIdentifier(info.getUsername());
+        User user = userService.findUserByIdentifier(info.getUsername());
 
         if(user == null){
             return GeneralResponse.getResponse(HttpStatus.NOT_FOUND, "Usuario no encontrado");

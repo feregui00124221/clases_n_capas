@@ -17,20 +17,17 @@ public class Token {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "code")
-    private UUID code;
+    private UUID tokenId;
 
-    @Column(name = "content")
     private String content;
 
     @Column(name = "timestamp", updatable = false)
     private Date timestamp;
 
-    @Column(name = "active")
     private Boolean active;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "id")
+    @JoinColumn(name = "userId")
     @JsonIgnore
     private User user;
 
