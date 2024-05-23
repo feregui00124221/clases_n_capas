@@ -5,6 +5,7 @@ import com.renegz.pnccontroller.utils.Encrypter;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -20,6 +21,10 @@ public class User {
     @JsonIgnore
     private String password;
 
-    @Column(nullable = false)
-    private boolean enabled;
+    @Column(name = "active", insertable = false)
+    private Boolean active;
+
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    @JsonIgnore
+    private List<Token> tokens;
 }
