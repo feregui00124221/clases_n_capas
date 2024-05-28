@@ -25,7 +25,7 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<GeneralResponse> login(@RequestBody @Valid UserLoginDTO info) {
 
-        User user = userService.findByUsernameOrEmail(info.getIdentifier(), info.getIdentifier());
+        User user = userService.findUserByIdentifier(info.getIdentifier());
 
         if (user == null) {
             return GeneralResponse.getResponse(HttpStatus.NOT_FOUND, "User not found");

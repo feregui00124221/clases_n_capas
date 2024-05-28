@@ -36,24 +36,26 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User findUserByIdentifier(String identifier) {
-        return userRepository.findByUsernameOrEmail(identifier, identifier).orElse(null);
+        return this.findByUsernameOrEmail(identifier, identifier);
     }
 
     @Override
     public User findByUsernameOrEmail(String username, String email) {
-        return userRepository.findByUsernameOrEmail(username, email).filter(User::getActive).orElse(null);
+        return userRepository
+                .findByActiveIsTrueAndUsernameOrEmail(username, email)
+                .orElse(null);
     }
 
     @Override
     public User findByUUID(UUID uuid) {
-        return userRepository.findById(uuid).filter(User::getActive).orElse(null);
+        return userRepository
+                .findByUserIdAndActiveIsTrue(uuid).orElse(null);
     }
 
     @Override
     public List<UserResponseDTO> findAll() {
         return userRepository.findAll()
                 .stream()
-                .filter(User::getActive)
                 .map(user -> new UserResponseDTO(user.getUsername(), user.getEmail()))
                 .collect(Collectors.toList());
     }
@@ -113,6 +115,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional(rollbackOn = Exception.class)
     public Boolean isTokenValid(User user, String token) {
 
         cleanTokens(user);
@@ -135,7 +138,7 @@ public class UserServiceImpl implements UserService {
         List<Token> tokens = tokenRepository.findByUserAndActive(user, true);
 
         tokens.forEach(token -> {
-            if(!jwtTools.verifyToken(token.getContent())) {
+            if (!jwtTools.verifyToken(token.getContent())) {
                 token.setActive(false);
                 tokenRepository.save(token);
             }
@@ -149,6 +152,6 @@ public class UserServiceImpl implements UserService {
                 .getAuthentication()
                 .getName();
 
-        return userRepository.findByUsernameOrEmail(username, username).orElse(null);
+        return userRepository.findByActiveIsTrueAndUsernameOrEmail(username, username).orElse(null);
     }
 }
