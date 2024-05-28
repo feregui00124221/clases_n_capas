@@ -1,6 +1,7 @@
 package com.renegz.pnccontroller.controllers;
 
 import com.renegz.pnccontroller.domain.dtos.*;
+import com.renegz.pnccontroller.domain.entities.Token;
 import com.renegz.pnccontroller.domain.entities.User;
 import com.renegz.pnccontroller.services.UserService;
 import jakarta.validation.Valid;
@@ -23,6 +24,7 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<GeneralResponse> login(@RequestBody @Valid UserLoginDTO info) {
+
         User user = userService.findByUsernameOrEmail(info.getIdentifier(), info.getIdentifier());
 
         if (user == null) {
@@ -33,7 +35,9 @@ public class AuthController {
             return GeneralResponse.getResponse(HttpStatus.UNAUTHORIZED, "Invalid credentials");
         }
 
-        return GeneralResponse.getResponse(HttpStatus.OK, "Login successful");
+        Token token = userService.registerToken(user);
+
+        return GeneralResponse.getResponse(HttpStatus.OK, "Login exitoso", new TokenDTO(token));
     }
 
     @PostMapping("/register")
@@ -62,7 +66,7 @@ public class AuthController {
 
     @PostMapping("/update")
     public ResponseEntity<GeneralResponse> updateUser(@RequestBody @Valid ChangePasswordDTO info) {
-        User user = userService.findByIdentifier(info.getIdentifier());
+        User user = userService.findUserByIdentifier(info.getIdentifier());
 
         if (user == null) {
             return GeneralResponse.getResponse(HttpStatus.NOT_FOUND, "User not found");

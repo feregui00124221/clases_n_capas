@@ -6,6 +6,8 @@ import com.renegz.pnccontroller.domain.entities.Category;
 import com.renegz.pnccontroller.repositories.BookRepository;
 import com.renegz.pnccontroller.services.BookService;
 import jakarta.transaction.Transactional;
+import org.hibernate.query.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -31,12 +33,28 @@ public class BookServiceImpl implements BookService {
         book.setIsbn(info.getIsbn());
         book.setTitle(info.getTitle());
         book.setCategory(category);
+        book.setAuthor(info.getAuthor());
         bookRepository.save(book);
     }
 
     @Override
     public List<Book> findAll() {
         return bookRepository.findAll();
+    }
+
+    @Override
+    public org.springframework.data.domain.Page<Book> findAllPageable(int page, int size) {
+        return bookRepository.findAll(PageRequest.of(page, size));
+    }
+
+    @Override
+    public Page findAllByAuthor(String author, int page, int size) {
+        return null;
+    }
+
+    @Override
+    public Page findBooksByCategory(String category, int page, int size) {
+        return null;
     }
 
     @Override
@@ -53,4 +71,6 @@ public class BookServiceImpl implements BookService {
             bookRepository.deleteByIsbn(isbn);
         }
     }
+
+
 }

@@ -22,7 +22,7 @@ public class GlobalErrorHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<GeneralResponse> GeneralHandler(Exception ex) {
-        return GeneralResponse.getResponse(HttpStatus.CONFLICT, ex.getMessage());
+        return GeneralResponse.getResponse(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
     }
 
     @ExceptionHandler(NoResourceFoundException.class)

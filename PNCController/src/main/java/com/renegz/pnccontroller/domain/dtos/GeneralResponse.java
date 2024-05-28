@@ -30,7 +30,6 @@ public class GeneralResponse {
     public static ResponseEntity<GeneralResponse> getResponse(HttpStatus status, Object data) {
         return getResponse(status, status.getReasonPhrase(), data);
     }
-
 //    // Message, data
 //    public static ResponseEntity<GeneralResponse> getResponse(String message, Object data) {
 //        return getResponse(HttpStatus.OK, message, data);

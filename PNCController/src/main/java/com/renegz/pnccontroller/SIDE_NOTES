@@ -12,3 +12,5 @@ INSERT INTO sec01_categories (code, name) VALUES ('CAT007', 'Category 7') ON CON
 INSERT INTO sec01_categories (code, name) VALUES ('CAT008', 'Category 8') ON CONFLICT (code) DO UPDATE SET name = EXCLUDED.name;
 
 Controlador de categorias CRUD
+
+sudo docker run --name qrguarddb -e POSTGRES_USER=feregui00124221 -e POSTGRES_PASSWORD=a1B2?c_3 -p 5432:5432 -d postgres

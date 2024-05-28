@@ -8,7 +8,7 @@ import lombok.Data;
 public class SaveBookDTO {
 
     @NotEmpty(message = "Verifique el ISBN ingresado")
-    @Pattern(regexp = "\\d{9}-\\d")
+    //@Pattern(regexp = "\\d{9}-\\d")
     private String isbn;
 
     @NotEmpty(message = "Verifique el formato del titulo ingresado")
@@ -17,4 +17,7 @@ public class SaveBookDTO {
     @NotEmpty
     @Pattern(regexp = "^CT_[0-9]{3}$")
     private String category;
+
+    @NotEmpty
+    private String author;
 }

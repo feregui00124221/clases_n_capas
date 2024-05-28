@@ -10,7 +10,7 @@ import java.util.List;
 @Data
 @Table(name = "sec01_categories")
 public class Category {
-    @Id
+    @Id @JsonIgnore
     private String code;
     private String name;
 
