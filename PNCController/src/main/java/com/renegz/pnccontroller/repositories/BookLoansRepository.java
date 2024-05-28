@@ -1,6 +1,5 @@
 package com.renegz.pnccontroller.repositories;
 
-import com.renegz.pnccontroller.domain.dtos.BookLoanDTO;
 import com.renegz.pnccontroller.domain.entities.Book;
 import com.renegz.pnccontroller.domain.entities.BookLoan;
 import com.renegz.pnccontroller.domain.entities.User;

@@ -1,6 +1,7 @@
 package com.renegz.pnccontroller.controllers;
 
-import com.renegz.pnccontroller.domain.dtos.CreateBookLoanDTO;
+import com.renegz.pnccontroller.domain.dtos.CreateBookLoanByDateDTO;
+import com.renegz.pnccontroller.domain.dtos.CreateBookLoanByDurationDTO;
 import com.renegz.pnccontroller.domain.dtos.GeneralResponse;
 import com.renegz.pnccontroller.domain.dtos.SaveBookDTO;
 import com.renegz.pnccontroller.domain.entities.Book;
@@ -14,6 +15,8 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Date;
 
 @RestController
 @RequestMapping("/api/library")
@@ -85,37 +88,84 @@ public class LibraryRestController {
     }
 
     @PostMapping("/loan-book")
-    public ResponseEntity<GeneralResponse> loanBook(@RequestBody @Valid CreateBookLoanDTO info){
+    public ResponseEntity<GeneralResponse> loanBook(@RequestBody @Valid CreateBookLoanByDurationDTO info) {
+
+        if (info.getLoanDuration() <= 0) {
+            return GeneralResponse.getResponse(HttpStatus.BAD_REQUEST, "La duración del préstamo debe ser mayor a 0");
+        }
+
+        if (info.getLoanDuration() > 30) {
+            return GeneralResponse.getResponse(HttpStatus.BAD_REQUEST, "La duración del préstamo no puede ser mayor a 30 días");
+        }
+
         User user = userService.findUserByIdentifier(info.getUsername());
 
-        if(user == null){
+        if (user == null) {
             return GeneralResponse.getResponse(HttpStatus.NOT_FOUND, "Usuario no encontrado");
         }
 
         Book book = bookService.findByIsbn(info.getIsbn());
 
-        if(book == null){
+        if (book == null) {
             return GeneralResponse.getResponse(HttpStatus.NOT_FOUND, "Libro no encontrado");
         }
 
-        if(bookLoanService.isLoaned(book)){
+        if (bookLoanService.isLoaned(book)) {
             return GeneralResponse.getResponse(HttpStatus.CONFLICT, "El libro ya está prestado");
         }
 
-        bookLoanService.createLoan(book, user, info.getLoanDuration());
+        bookLoanService.createLoanByDuration(book, user, info.getLoanDuration());
+
+        return GeneralResponse.getResponse(HttpStatus.OK, "Libro prestado");
+    }
+
+    @PostMapping("/loan-book-by-date")
+    public ResponseEntity<GeneralResponse> loanBookByDate(@RequestBody @Valid CreateBookLoanByDateDTO info) {
+
+        if (!bookLoanService.checkLoanDateFormat(info.getReturnDate()).isValid()) {
+            return GeneralResponse.getResponse(HttpStatus.BAD_REQUEST, bookLoanService.checkLoanDateFormat(info.getReturnDate()).getMessage());
+        }
+
+        Date returnDate = bookLoanService.getReturnDate(info.getReturnDate());
+
+        if (new Date().after(returnDate)) {
+            return GeneralResponse.getResponse(HttpStatus.BAD_REQUEST, "La fecha de retorno no puede ser anterior a la fecha actual");
+        }
+
+        if(returnDate.after(new Date(System.currentTimeMillis() + 30L * 24 * 60 * 60 * 1000))){
+            return GeneralResponse.getResponse(HttpStatus.BAD_REQUEST, "La fecha de retorno no puede ser mayor a 30 días");
+        }
+
+        User user = userService.findUserByIdentifier(info.getUsername());
+
+        if (user == null) {
+            return GeneralResponse.getResponse(HttpStatus.NOT_FOUND, "Usuario no encontrado");
+        }
+
+        Book book = bookService.findByIsbn(info.getIsbn());
+
+        if (book == null) {
+            return GeneralResponse.getResponse(HttpStatus.NOT_FOUND, "Libro no encontrado");
+        }
+
+        if (bookLoanService.isLoaned(book)) {
+            return GeneralResponse.getResponse(HttpStatus.CONFLICT, "El libro ya está prestado");
+        }
+
+        bookLoanService.createLoanByDate(book, user, returnDate);
 
         return GeneralResponse.getResponse(HttpStatus.OK, "Libro prestado");
     }
 
     @PostMapping("/return-book/{isbn}")
-    public ResponseEntity<GeneralResponse> returnBook(@PathVariable String isbn){
+    public ResponseEntity<GeneralResponse> returnBook(@PathVariable String isbn) {
         Book book = bookService.findByIsbn(isbn);
 
-        if(book == null){
+        if (book == null) {
             return GeneralResponse.getResponse(HttpStatus.NOT_FOUND, "Libro no encontrado");
         }
 
-        if(!bookLoanService.isLoaned(book)){
+        if (!bookLoanService.isLoaned(book)) {
             return GeneralResponse.getResponse(HttpStatus.CONFLICT, "El libro no está prestado");
         }
 
@@ -126,12 +176,12 @@ public class LibraryRestController {
 
 
     @GetMapping("/loans")
-    public ResponseEntity<GeneralResponse> findAllLoans(){
+    public ResponseEntity<GeneralResponse> findAllLoans() {
         return GeneralResponse.getResponse(HttpStatus.OK, "List of loans!", bookLoanService.findAll());
     }
 
     @GetMapping("/loans-active")
-    public ResponseEntity<GeneralResponse> findAllActiveLoans(){
+    public ResponseEntity<GeneralResponse> findAllActiveLoans() {
         return GeneralResponse.getResponse(HttpStatus.OK, "List of active loans!", bookLoanService.findAllActive());
     }
 }

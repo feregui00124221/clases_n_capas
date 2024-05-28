@@ -12,7 +12,7 @@ import java.util.UUID;
 @Data
 @NoArgsConstructor
 @Entity
-@Table(name = "token")
+@Table(name = "sec01_token")
 public class Token {
 
     @Id

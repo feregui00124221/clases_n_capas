@@ -1,17 +1,20 @@
 package com.renegz.pnccontroller.services.implementations;
 
 import com.renegz.pnccontroller.domain.dtos.BookLoanDTO;
+import com.renegz.pnccontroller.domain.dtos.DateCheckerDTO;
+import com.renegz.pnccontroller.domain.dtos.GeneralResponse;
 import com.renegz.pnccontroller.domain.entities.Book;
 import com.renegz.pnccontroller.domain.entities.BookLoan;
 import com.renegz.pnccontroller.domain.entities.User;
 import com.renegz.pnccontroller.repositories.BookLoansRepository;
 import com.renegz.pnccontroller.services.BookLoanService;
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.Instant;
-import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -23,12 +26,20 @@ public class BookLoanServiceImpl implements BookLoanService {
     final
     BookLoansRepository bookLoansRepository;
 
-    public BookLoanServiceImpl(BookLoansRepository bookLoansRepository) {
+    final
+    UserServiceImpl userService;
+
+    final
+    BookServiceImpl bookService;
+
+    public BookLoanServiceImpl(BookLoansRepository bookLoansRepository, UserServiceImpl userService, BookServiceImpl bookService) {
         this.bookLoansRepository = bookLoansRepository;
+        this.userService = userService;
+        this.bookService = bookService;
     }
 
     @Override
-    public void createLoan(Book book, User user, int loanDuration) {
+    public void createLoanByDuration(Book book, User user, int loanDuration) {
         BookLoan bookLoan = new BookLoan();
 
         bookLoan.setBook(book);
@@ -41,6 +52,47 @@ public class BookLoanServiceImpl implements BookLoanService {
         );
 
         bookLoansRepository.save(bookLoan);
+    }
+
+    @Override
+    public void createLoanByDate(Book book, User user, Date returnDate) {
+        BookLoan bookLoan = new BookLoan();
+
+        bookLoan.setBook(book);
+        bookLoan.setUser(user);
+
+        bookLoan.setLoanDate(Date.from(Instant.now()));
+        bookLoan.setDueDate(returnDate);
+
+        bookLoansRepository.save(bookLoan);
+    }
+
+    @Override
+    public DateCheckerDTO checkLoanDateFormat(String returnDate) {
+        String[] dateParts = returnDate.split("-");
+
+        if(dateParts.length != 3 || (dateParts[0].length() != 4 || dateParts[1].length() != 2 || dateParts[2].length() != 2)){
+            return new DateCheckerDTO(false, "Formato de fecha incorrecto, debe ser yyyy-mm-dd");
+        }
+
+        if(!dateParts[1].matches("0[1-9]|1[0-2]")){
+            return new DateCheckerDTO(false, "Fecha inválida, mes incorrecto");
+        }
+
+        if(!dateParts[2].matches("0[1-9]|[12][0-9]|3[01]")){
+            return new DateCheckerDTO(false, "Fecha inválida, día incorrecto");
+        }
+
+        return new DateCheckerDTO(true, "Fecha válida");
+    }
+
+    @Override
+    public Date getReturnDate(String returnDate) {
+        try {
+            return new SimpleDateFormat("yyyy-MM-dd").parse(returnDate);
+        } catch (ParseException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override

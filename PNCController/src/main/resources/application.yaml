@@ -4,7 +4,7 @@
 spring:
   jwt:
     secret: Keys.secretKeyFor(SignatureAlgorithm.HS256);
-    exptime: 60000
+    exptime: 300000
   sql:
     init:
       mode: always

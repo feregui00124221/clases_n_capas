@@ -1,31 +1,27 @@
 package com.renegz.pnccontroller.domain.dtos;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.renegz.pnccontroller.domain.entities.Book;
-import com.renegz.pnccontroller.domain.entities.User;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToOne;
 import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.Date;
-import java.util.UUID;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class BookLoanDTO {
     @NotEmpty
+    @Pattern(regexp = "^\\d{4}-\\d{2}-\\d{2}$", message = "Date must be in format yyyy-MM-dd")
     private Date loanDate;
 
+    @Pattern(regexp = "^\\d{4}-\\d{2}-\\d{2}$", message = "Date must be in format yyyy-MM-dd")
     private Date returnDate;
 
     @NotEmpty
+    @Pattern(regexp = "^\\d{4}-\\d{2}-\\d{2}$", message = "Date must be in format yyyy-MM-dd")
     private Date dueDate;
 
     @NotEmpty

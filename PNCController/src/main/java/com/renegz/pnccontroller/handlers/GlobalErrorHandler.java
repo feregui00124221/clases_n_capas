@@ -11,6 +11,9 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
+import java.time.DateTimeException;
+import java.time.format.DateTimeParseException;
+
 @ControllerAdvice
 @Slf4j
 public class GlobalErrorHandler {
@@ -58,5 +61,10 @@ public class GlobalErrorHandler {
     @ExceptionHandler(InternalError.class)
     public ResponseEntity<GeneralResponse> internalErrorHandler(InternalError ex) {
         return GeneralResponse.getResponse(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
+    }
+
+    @ExceptionHandler(DateTimeParseException.class)
+    public ResponseEntity<GeneralResponse> dateTimeExceptionHandler(DateTimeException ex) {
+        return GeneralResponse.getResponse(HttpStatus.BAD_REQUEST, "Invalid date format. Please use yyyy-MM-dd format");
     }
 }
