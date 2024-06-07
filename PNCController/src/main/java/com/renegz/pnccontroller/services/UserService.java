@@ -33,4 +33,7 @@ public interface UserService {
 
     //Find User authenticated
     User findUserAuthenticated();
+
+    void changeRoles(User user, List<String> roles);
+
 }

@@ -1,6 +1,7 @@
 package com.renegz.pnccontroller.controllers;
 
 import com.renegz.pnccontroller.domain.dtos.*;
+import com.renegz.pnccontroller.domain.entities.Role;
 import com.renegz.pnccontroller.domain.entities.Token;
 import com.renegz.pnccontroller.domain.entities.User;
 import com.renegz.pnccontroller.services.UserService;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -38,6 +40,27 @@ public class AuthController {
         Token token = userService.registerToken(user);
 
         return GeneralResponse.getResponse(HttpStatus.OK, "Login exitoso", new TokenDTO(token));
+    }
+
+    @GetMapping("/whoami")
+    public ResponseEntity<GeneralResponse> whoami(@RequestBody @Valid UserLoginDTO info) {
+
+        User user = userService.findUserByIdentifier(info.getIdentifier());
+
+        if (user == null) {
+            return GeneralResponse.getResponse(HttpStatus.NOT_FOUND, "User not found");
+        }
+
+        if (userService.checkPassword(user, info.getPassword())) {
+            return GeneralResponse.getResponse(HttpStatus.UNAUTHORIZED, "Invalid credentials");
+        }
+
+        WhoamiDTO whoamiDTO = new WhoamiDTO();
+        whoamiDTO.setUsername(user.getUsername());
+        whoamiDTO.setEmail(user.getEmail());
+        whoamiDTO.setRoles(user.getRoles().stream().map(Role::getRoleName).collect(Collectors.toList()));
+
+        return GeneralResponse.getResponse(HttpStatus.OK, "Login exitoso", whoamiDTO);
     }
 
     @PostMapping("/register")

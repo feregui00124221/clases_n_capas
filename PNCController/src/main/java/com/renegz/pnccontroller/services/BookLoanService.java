@@ -13,10 +13,11 @@ import java.util.UUID;
 public interface BookLoanService {
 
     void createLoanByDuration(Book book, User user, int loanDuration);
-    void createLoanByDate(Book book, User user, Date returnDate);
+    void createLoanByDueDate(Book book, User user, Date returnDate);
+    void createLoanByIssueDate(Book book, User user, Date issueDate);
 
-    DateCheckerDTO checkLoanDateFormat(String returnDate);
-    Date getReturnDate(String returnDate);
+    DateCheckerDTO checkDateFormat(String returnDate);
+    Date StringToDate(String returnDate);
 
     BookLoan findById(UUID id);
     BookLoan findActiveByBook(Book book);
@@ -27,6 +28,7 @@ public interface BookLoanService {
     List<BookLoanDTO> findAllActive();
 
     boolean isLoaned(Book book);
+    boolean willBeLoaned(Book book, Date issueDate);
 
     void returnBook(BookLoan bookLoan);
 }

@@ -3,7 +3,7 @@
 
 spring:
   jwt:
-    secret: Keys.secretKeyFor(SignatureAlgorithm.HS256);
+    secret: Keys.secretKeyFor(SignatureAlgorithm.HS512);
     exptime: 300000
   sql:
     init:

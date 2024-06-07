@@ -2,14 +2,12 @@ package com.renegz.pnccontroller.services.implementations;
 
 import com.renegz.pnccontroller.domain.dtos.BookLoanDTO;
 import com.renegz.pnccontroller.domain.dtos.DateCheckerDTO;
-import com.renegz.pnccontroller.domain.dtos.GeneralResponse;
 import com.renegz.pnccontroller.domain.entities.Book;
 import com.renegz.pnccontroller.domain.entities.BookLoan;
 import com.renegz.pnccontroller.domain.entities.User;
 import com.renegz.pnccontroller.repositories.BookLoansRepository;
 import com.renegz.pnccontroller.services.BookLoanService;
 import jakarta.transaction.Transactional;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.text.ParseException;
@@ -55,7 +53,7 @@ public class BookLoanServiceImpl implements BookLoanService {
     }
 
     @Override
-    public void createLoanByDate(Book book, User user, Date returnDate) {
+    public void createLoanByDueDate(Book book, User user, Date returnDate) {
         BookLoan bookLoan = new BookLoan();
 
         bookLoan.setBook(book);
@@ -68,7 +66,22 @@ public class BookLoanServiceImpl implements BookLoanService {
     }
 
     @Override
-    public DateCheckerDTO checkLoanDateFormat(String returnDate) {
+    public void createLoanByIssueDate(Book book, User user, Date issueDate) {
+        BookLoan bookLoan = new BookLoan();
+
+        bookLoan.setBook(book);
+        bookLoan.setUser(user);
+
+        bookLoan.setLoanDate(issueDate);
+
+        Date dueDate = Date.from(issueDate.toInstant().plusSeconds(7 * 24 * 60 * 60));
+        bookLoan.setDueDate(dueDate);
+
+        bookLoansRepository.save(bookLoan);
+    }
+
+    @Override
+    public DateCheckerDTO checkDateFormat(String returnDate) {
         String[] dateParts = returnDate.split("-");
 
         if(dateParts.length != 3 || (dateParts[0].length() != 4 || dateParts[1].length() != 2 || dateParts[2].length() != 2)){
@@ -87,7 +100,7 @@ public class BookLoanServiceImpl implements BookLoanService {
     }
 
     @Override
-    public Date getReturnDate(String returnDate) {
+    public Date StringToDate(String returnDate) {
         try {
             return new SimpleDateFormat("yyyy-MM-dd").parse(returnDate);
         } catch (ParseException e) {
@@ -138,6 +151,11 @@ public class BookLoanServiceImpl implements BookLoanService {
     @Override
     public boolean isLoaned(Book book) {
         return bookLoansRepository.existsByBookAndAndReturnDateIsNull(book);
+    }
+
+    @Override
+    public boolean willBeLoaned(Book book, Date issueDate) {
+        return true;
     }
 
     @Override

@@ -3,14 +3,17 @@ package com.renegz.pnccontroller.services.implementations;
 import com.renegz.pnccontroller.domain.dtos.ChangePasswordDTO;
 import com.renegz.pnccontroller.domain.dtos.UserRegisterDTO;
 import com.renegz.pnccontroller.domain.dtos.UserResponseDTO;
+import com.renegz.pnccontroller.domain.entities.Role;
 import com.renegz.pnccontroller.domain.entities.Token;
 import com.renegz.pnccontroller.domain.entities.User;
+import com.renegz.pnccontroller.repositories.RoleRepository;
 import com.renegz.pnccontroller.repositories.TokenRepository;
 import com.renegz.pnccontroller.repositories.UserRepository;
 import com.renegz.pnccontroller.services.UserService;
-import com.renegz.pnccontroller.utils.JWTTools;
+import com.renegz.pnccontroller.security.JWTTools;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -28,10 +31,13 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
 
-    public UserServiceImpl(UserRepository userRepository, JWTTools jwtTools, TokenRepository tokenRepository) {
+    private final RoleRepository roleRepository;
+
+    public UserServiceImpl(UserRepository userRepository, JWTTools jwtTools, TokenRepository tokenRepository, RoleRepository roleRepository) {
         this.userRepository = userRepository;
         this.jwtTools = jwtTools;
         this.tokenRepository = tokenRepository;
+        this.roleRepository = roleRepository;
     }
 
     @Override
@@ -64,12 +70,27 @@ public class UserServiceImpl implements UserService {
     @Transactional(rollbackOn = Exception.class)
     public void register(UserRegisterDTO UserInfo) {
         User user = new User();
+
+        List<Role> roles = findRolesByIdentifiers(List.of("USER"));
         user.setUsername(UserInfo.getUsername());
         user.setEmail(UserInfo.getEmail());
         user.setPassword(UserInfo.getPassword());
         user.setActive(true);
+        user.setRoles(roles);
+
 
         userRepository.save(user);
+    }
+
+    private Role findRoleByIdentifier(String identifier) {
+        return roleRepository.findById(identifier).orElse(null);
+    }
+
+    private List<Role> findRolesByIdentifiers(List<String> identifiers) {
+        return roleRepository.findAllById(identifiers
+                .stream()
+                .map(String::toUpperCase)
+                .collect(Collectors.toList()));
     }
 
     @Override
@@ -85,6 +106,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(rollbackOn = Exception.class)
+    @Secured({"ROLE_ADMIN", "ROLE_SUPER_ADMIN"})
     public void deleteUser(UUID uuid) {
         User user = findByUUID(uuid);
 
@@ -153,5 +175,14 @@ public class UserServiceImpl implements UserService {
                 .getName();
 
         return userRepository.findByActiveIsTrueAndUsernameOrEmail(username, username).orElse(null);
+    }
+
+    @Override
+    @Transactional(rollbackOn = Exception.class)
+    public void changeRoles(User user, List<String> roles) {
+        List<Role> rolesList = findRolesByIdentifiers(roles);
+
+        user.setRoles(rolesList);
+        userRepository.save(user);
     }
 }
